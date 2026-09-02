@@ -12,7 +12,7 @@
 
 ---
 
-**Borderlands Online Server is an open-source project dedicated to restoring the discontinued Borderlands Online PC client by recreating the backend services it originally depended on.
+Borderlands Online Server is an open-source project dedicated to restoring the discontinued Borderlands Online PC client by recreating the backend services it originally depended on.
 
 ## Status
 
