@@ -1,9 +1,32 @@
 <?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup>
-    <Filter Include="Source Files"><UniqueIdentifier>{13ACAD83-8BDD-4A98-9349-C66AF7955F5F}</UniqueIdentifier></Filter>
+    <Filter Include="Source Files"><UniqueIdentifier>{BD9BEA93-8888-4F43-BAD1-BC5BBC5C13C2}</UniqueIdentifier></Filter>
+    <Filter Include="Source Files\Services"><UniqueIdentifier>{A53BBD06-3F10-4E68-9A67-C14488669831}</UniqueIdentifier></Filter>
+    <Filter Include="Header Files"><UniqueIdentifier>{4A93A70A-1D00-4EF1-822E-DF7B6C85D2D4}</UniqueIdentifier></Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp"><Filter>Source Files</Filter></ClCompile>
+    <ClCompile Include="EmulatorState.cpp"><Filter>Source Files</Filter></ClCompile>
+    <ClCompile Include="CasServer.cpp"><Filter>Source Files</Filter></ClCompile>
+    <ClCompile Include="PhotonCrypto.cpp"><Filter>Source Files</Filter></ClCompile>
+    <ClCompile Include="PhotonProtocol.cpp"><Filter>Source Files</Filter></ClCompile>
+    <ClCompile Include="PhotonServer.cpp"><Filter>Source Files</Filter></ClCompile>
+    <ClCompile Include="OperationCatalog.cpp"><Filter>Source Files</Filter></ClCompile>
+    <ClCompile Include="services\AuthService.cpp"><Filter>Source Files\Services</Filter></ClCompile>
+    <ClCompile Include="services\CharacterService.cpp"><Filter>Source Files\Services</Filter></ClCompile>
+    <ClCompile Include="services\SettingsService.cpp"><Filter>Source Files\Services</Filter></ClCompile>
+    <ClCompile Include="services\PresenceService.cpp"><Filter>Source Files\Services</Filter></ClCompile>
+    <ClCompile Include="services\InventoryService.cpp"><Filter>Source Files\Services</Filter></ClCompile>
+    <ClCompile Include="services\QuestService.cpp"><Filter>Source Files\Services</Filter></ClCompile>
+    <ClCompile Include="services\FriendsService.cpp"><Filter>Source Files\Services</Filter></ClCompile>
+    <ClCompile Include="services\GroupService.cpp"><Filter>Source Files\Services</Filter></ClCompile>
+    <ClCompile Include="services\GuildService.cpp"><Filter>Source Files\Services</Filter></ClCompile>
+    <ClCompile Include="services\SkillTreeService.cpp"><Filter>Source Files\Services</Filter></ClCompile>
+    <ClCompile Include="services\MailService.cpp"><Filter>Source Files\Services</Filter></ClCompile>
+    <ClCompile Include="services\CommonService.cpp"><Filter>Source Files\Services</Filter></ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="EmulatorShared.h"><Filter>Header Files</Filter></ClInclude>
   </ItemGroup>
 </Project>

@@ -2,6 +2,7 @@
 #include "AuthRedirect.h"
 #include "Logger.h"
 #include "ShandaHook.h"
+#include "GpkSuppress.h"
 
 #include <string>
 #include <vector>
@@ -227,6 +228,10 @@ namespace emu
         bol_log::Write("VERSION proxy: includes VerQueryValueW required by BOL_Data\\Mono\\mono.dll");
 
         LogKnownFiles();
+
+        // The retired GPK auto-updater always fails now. Suppress only its
+        // known update-failure dialog/window; leave the rest of GPKit intact.
+        gpk_suppress::Start();
 
         // Only arm the direct Shanda Run hook when the user explicitly asks for
         // the optional -sndalogin path. In normal mode this hook must stay off:

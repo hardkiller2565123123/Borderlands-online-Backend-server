@@ -82,6 +82,27 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp" />
+    <ClCompile Include="EmulatorState.cpp" />
+    <ClCompile Include="CasServer.cpp" />
+    <ClCompile Include="PhotonCrypto.cpp" />
+    <ClCompile Include="PhotonProtocol.cpp" />
+    <ClCompile Include="PhotonServer.cpp" />
+    <ClCompile Include="OperationCatalog.cpp" />
+    <ClCompile Include="services\AuthService.cpp" />
+    <ClCompile Include="services\CharacterService.cpp" />
+    <ClCompile Include="services\SettingsService.cpp" />
+    <ClCompile Include="services\PresenceService.cpp" />
+    <ClCompile Include="services\InventoryService.cpp" />
+    <ClCompile Include="services\QuestService.cpp" />
+    <ClCompile Include="services\FriendsService.cpp" />
+    <ClCompile Include="services\GroupService.cpp" />
+    <ClCompile Include="services\GuildService.cpp" />
+    <ClCompile Include="services\SkillTreeService.cpp" />
+    <ClCompile Include="services\MailService.cpp" />
+    <ClCompile Include="services\CommonService.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="EmulatorShared.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets" />

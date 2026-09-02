@@ -7,12 +7,14 @@
   <ItemGroup>
     <ClCompile Include="VersionProxy.cpp"><Filter>Source Files</Filter></ClCompile>
     <ClCompile Include="Logger.cpp"><Filter>Source Files</Filter></ClCompile>
+    <ClCompile Include="GpkSuppress.cpp"><Filter>Source Files</Filter></ClCompile>
     <ClCompile Include="EmuBootstrap.cpp"><Filter>Source Files</Filter></ClCompile>
     <ClCompile Include="AuthRedirect.cpp"><Filter>Source Files</Filter></ClCompile>
     <ClCompile Include="ShandaHook.cpp"><Filter>Source Files</Filter></ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Logger.h"><Filter>Header Files</Filter></ClInclude>
+    <ClInclude Include="GpkSuppress.h"><Filter>Header Files</Filter></ClInclude>
     <ClInclude Include="EmuBootstrap.h"><Filter>Header Files</Filter></ClInclude>
     <ClInclude Include="AuthRedirect.h"><Filter>Header Files</Filter></ClInclude>
     <ClInclude Include="ShandaHook.h"><Filter>Header Files</Filter></ClInclude>
