@@ -1,9 +1,6 @@
 <div align="center">
 
 # Borderlands Online Server
-
-**An independent preservation project for Borderlands Online**
-
 ![Status](https://img.shields.io/badge/status-early%20development-orange)
 ![Platform](https://img.shields.io/badge/platform-Windows-blue)
 ![Source](https://img.shields.io/badge/source-open%20source-brightgreen)
