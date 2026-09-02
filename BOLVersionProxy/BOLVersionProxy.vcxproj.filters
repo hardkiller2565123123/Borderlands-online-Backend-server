@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="Source Files"><UniqueIdentifier>{BD9BEA93-8888-4F43-BAD1-BC5BBC5C13C2}</UniqueIdentifier></Filter>
+    <Filter Include="Header Files"><UniqueIdentifier>{4A93A70A-1D00-4EF1-822E-DF7B6C85D2D4}</UniqueIdentifier></Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="VersionProxy.cpp"><Filter>Source Files</Filter></ClCompile>
+    <ClCompile Include="Logger.cpp"><Filter>Source Files</Filter></ClCompile>
+    <ClCompile Include="EmuBootstrap.cpp"><Filter>Source Files</Filter></ClCompile>
+    <ClCompile Include="AuthRedirect.cpp"><Filter>Source Files</Filter></ClCompile>
+    <ClCompile Include="ShandaHook.cpp"><Filter>Source Files</Filter></ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="Logger.h"><Filter>Header Files</Filter></ClInclude>
+    <ClInclude Include="EmuBootstrap.h"><Filter>Header Files</Filter></ClInclude>
+    <ClInclude Include="AuthRedirect.h"><Filter>Header Files</Filter></ClInclude>
+    <ClInclude Include="ShandaHook.h"><Filter>Header Files</Filter></ClInclude>
+  </ItemGroup>
+</Project>
