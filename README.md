@@ -12,15 +12,25 @@
 
 ---
 
-**Borderlands Online Server** recreates the backend services required by the discontinued **Borderlands Online** PC client.
+**Borderlands Online Server** is a community preservation project that recreates the backend services required by the discontinued **Borderlands Online** PC client.
 
 ## Status
 
-> **Early development**
+> **Early Development**
 
-Current work is focused on restoring the login process and reaching the original game frontend through backend emulation.
+The replacement backend can currently handle the local login flow and communicate with the original game client.
 
-More services will be implemented as development continues.
+Current progress includes:
+
+- Local account login
+- Photon authentication
+- Lobby connection
+- Character service
+- Character loading
+- Online/game server communication
+- Early profile, inventory, presence and quest services
+
+Work is continuing on completing the remaining services and restoring full frontend and gameplay functionality.
 
 ## How to Use
 
