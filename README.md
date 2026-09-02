@@ -2,7 +2,6 @@
 
 **Borderlands Online Server** is a community preservation project that recreates the backend services required by the discontinued **Borderlands Online** PC client.
 
-The goal is to make the original game client usable again without relying on the original servers.
 
 ## How It Works
 
