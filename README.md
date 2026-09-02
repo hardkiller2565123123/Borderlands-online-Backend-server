@@ -2,25 +2,6 @@
 
 **Borderlands Online Server** is a community preservation project that recreates the backend services required by the discontinued **Borderlands Online** PC client.
 
-
-## How It Works
-
-The game normally connects to services that are no longer available.
-
-This project replaces those services with a custom backend.
-
-```text
-Borderlands Online Client
-        ↓
-Client Redirect
-        ↓
-Custom Backend
-        ↓
-Authentication / Profiles / Lobbies / Game Services
-```
-
-A small client-side `version.dll` is used to redirect the game toward the replacement backend while keeping as much of the original client behavior intact as possible.
-
 ## Status
 
 **Early development.**
