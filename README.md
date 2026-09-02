@@ -17,8 +17,6 @@ More services will be implemented as development continues.
 
 The backend executable will start automatically.
 
-You can also start the backend `.exe` manually before launching the game.
-
 ## Disclaimer
 
 This is an unofficial preservation project and is not affiliated with Gearbox Software, 2K, or the original Borderlands Online developers or publishers.
