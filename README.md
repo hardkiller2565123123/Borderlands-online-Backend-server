@@ -23,7 +23,7 @@
 - Online/game server communication
 - Early profile, inventory, presence and quest services
 
-Work is continuing on completing the remaining services and restoring full frontend and gameplay functionality.
+Work is continuing on completing the remaining services and restoring full functionality.
 
 ## How to Use
 
