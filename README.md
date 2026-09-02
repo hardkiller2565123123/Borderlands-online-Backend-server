@@ -12,10 +12,12 @@ More services will be implemented as development continues.
 
 ## How to Use
 
-1. Download the latest release.
-2. Place `version.dll` in the Borderlands Online game directory.
-3. Start the Borderlands Online backend/server.
-4. Launch the game normally.
+1. Place the provided `.exe` and `version.dll` in the Borderlands Online game folder.
+2. Launch the game normally.
+
+The backend executable will start automatically.
+
+You can also start the backend `.exe` manually before launching the game.
 
 ## Disclaimer
 
