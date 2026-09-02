@@ -2,19 +2,20 @@
 
 # Borderlands Online Server
 
-**A community preservation project for Borderlands Online**
+**An independent preservation project for Borderlands Online**
 
 ![Status](https://img.shields.io/badge/status-early%20development-orange)
 ![Platform](https://img.shields.io/badge/platform-Windows-blue)
-![Architecture](https://img.shields.io/badge/architecture-x86-lightgrey)
+![Source](https://img.shields.io/badge/source-open%20source-brightgreen)
 
 </div>
 
 ---
 
-**Borderlands Online Server** is a community preservation project that recreates the backend services required by the discontinued **Borderlands Online** PC client.
+**Borderlands Online Server** is an open-source preservation project created to recreate the backend services required by the discontinued **Borderlands Online** PC client.
 
 ## Status
+
 - Local account login
 - Photon authentication
 - Lobby connection
@@ -27,12 +28,21 @@ Work is continuing on completing the remaining services and restoring full funct
 
 ## How to Use
 
-1. Place the provided `.exe` and `version.dll` in the same folder as the Borderlands Online game executable.
+1. Place `BOLEmulator.exe` and `version.dll` in the same folder as the Borderlands Online game executable.
 2. Launch the game normally.
 
-The backend executable will start automatically when the game is launched.
+`BOLEmulator.exe` will start automatically when the game is launched.
 
-You can also start the backend `.exe` manually before launching the game.
+You can also start `BOLEmulator.exe` manually before launching the game.
+
+## Building
+
+The project is open source and can be built from source.
+
+1. Clone or download the repository.
+2. Open the included Visual Studio solution.
+3. Build the project.
+4. Place the resulting `BOLEmulator.exe` and `version.dll` in the Borderlands Online game folder.
 
 ## Disclaimer
 
