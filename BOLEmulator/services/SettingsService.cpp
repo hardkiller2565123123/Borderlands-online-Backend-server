@@ -22,7 +22,7 @@ namespace bolemu
         plain.push_back(0x2A); // null DebugMessage
         AppendU16BE(plain, 1); // one response parameter
         plain.push_back(0x00); // key 0: settings string
-        AppendProtocol16TypedString(plain, "");
+        AppendProtocol16TypedString(plain, g_localServices.personalSettings);
 
         std::vector<unsigned char> message;
         message.push_back(0xF3);
@@ -67,8 +67,8 @@ namespace bolemu
                  plain.data(), static_cast<int>(plain.size()));
         PrintHex("[PHOTON/UDP] -> GET_PERSONAL_SETTINGS_RESPONSE",
                  reply.data(), static_cast<int>(reply.size()));
-        std::printf("[PHOTON/UDP] GetPersonalSettings success: empty local/default settings ch=0 seq=%u%s\n",
-                    sequence, encrypted ? " encrypted" : "");
+        std::printf("[PHOTON/UDP] GetPersonalSettings success: %zu byte(s) of persisted local settings ch=0 seq=%u%s\n",
+                    g_localServices.personalSettings.size(), sequence, encrypted ? " encrypted" : "");
         std::printf("[PHOTON/UDP] waiting for the next post-settings BOL operation\n");
         std::fflush(stdout);
         return true;

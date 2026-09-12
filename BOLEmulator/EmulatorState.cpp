@@ -3,6 +3,7 @@
 namespace bolemu
 {
     LocalCharacterState g_localCharacter;
+    LocalServiceState g_localServices;
 
     // BOL uses two simultaneous Photon peers: NetworkingPeer (master/lobby) and
     // OnlineServerPeer (BOL account/character services). Keep transport sequence
@@ -61,7 +62,7 @@ namespace bolemu
             return false;
 
         const unsigned int magic = 0x31434C42u; // BLC1
-        const unsigned int version = 1;
+        const unsigned int version = 2;
         bool ok =
             std::fwrite(&magic, sizeof(magic), 1, file) == 1 &&
             std::fwrite(&version, sizeof(version), 1, file) == 1 &&
@@ -74,7 +75,12 @@ namespace bolemu
             WriteStateString(file, g_localCharacter.avatarParts) &&
             WriteStateString(file, g_localCharacter.avatarMaterials) &&
             std::fwrite(&g_localCharacter.avatarIdBits, sizeof(g_localCharacter.avatarIdBits), 1, file) == 1 &&
-            std::fwrite(&g_localCharacter.timePlayed, sizeof(g_localCharacter.timePlayed), 1, file) == 1;
+            std::fwrite(&g_localCharacter.timePlayed, sizeof(g_localCharacter.timePlayed), 1, file) == 1 &&
+            WriteStateString(file, g_localServices.personalSettings) &&
+            std::fwrite(&g_localServices.currentTown, sizeof(g_localServices.currentTown), 1, file) == 1 &&
+            std::fwrite(&g_localServices.bondCurrency, sizeof(g_localServices.bondCurrency), 1, file) == 1 &&
+            std::fwrite(&g_localServices.specialCurrency, sizeof(g_localServices.specialCurrency), 1, file) == 1 &&
+            std::fwrite(&g_localServices.circulateCurrency, sizeof(g_localServices.circulateCurrency), 1, file) == 1;
 
         std::fclose(file);
         return ok;
@@ -89,9 +95,10 @@ namespace bolemu
         unsigned int magic = 0;
         unsigned int version = 0;
         LocalCharacterState loaded;
+        LocalServiceState serviceState; // defaults provide v1 migration values
         bool ok =
             std::fread(&magic, sizeof(magic), 1, file) == 1 && magic == 0x31434C42u &&
-            std::fread(&version, sizeof(version), 1, file) == 1 && version == 1 &&
+            std::fread(&version, sizeof(version), 1, file) == 1 && (version == 1 || version == 2) &&
             std::fread(&loaded.id, sizeof(loaded.id), 1, file) == 1 &&
             std::fread(&loaded.accountId, sizeof(loaded.accountId), 1, file) == 1 &&
             ReadStateString(file, loaded.name) &&
@@ -102,6 +109,16 @@ namespace bolemu
             ReadStateString(file, loaded.avatarMaterials) &&
             std::fread(&loaded.avatarIdBits, sizeof(loaded.avatarIdBits), 1, file) == 1 &&
             std::fread(&loaded.timePlayed, sizeof(loaded.timePlayed), 1, file) == 1;
+
+        if (ok && version >= 2)
+        {
+            ok =
+                ReadStateString(file, serviceState.personalSettings) &&
+                std::fread(&serviceState.currentTown, sizeof(serviceState.currentTown), 1, file) == 1 &&
+                std::fread(&serviceState.bondCurrency, sizeof(serviceState.bondCurrency), 1, file) == 1 &&
+                std::fread(&serviceState.specialCurrency, sizeof(serviceState.specialCurrency), 1, file) == 1 &&
+                std::fread(&serviceState.circulateCurrency, sizeof(serviceState.circulateCurrency), 1, file) == 1;
+        }
         std::fclose(file);
 
         if (!ok)
@@ -109,8 +126,10 @@ namespace bolemu
 
         loaded.exists = true;
         g_localCharacter = loaded;
+        g_localServices = serviceState;
         return true;
     }
+
     void PrintHex(const char* prefix, const unsigned char* data, int size)
     {
         std::printf("%s %d byte(s):", prefix, size);

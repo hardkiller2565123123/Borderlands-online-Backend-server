@@ -64,7 +64,20 @@ namespace bolemu
         unsigned int timePlayed = 0;
     };
 
+    // Client-visible online-service state reconstructed from Assembly-CSharp.
+    // These values are persisted beside the local character so setters and
+    // later getters behave like one coherent local backend rather than stubs.
+    struct LocalServiceState
+    {
+        std::string personalSettings;
+        unsigned int currentTown = 3;
+        unsigned int bondCurrency = 500;
+        unsigned int specialCurrency = 0;
+        unsigned int circulateCurrency = 0;
+    };
+
     extern LocalCharacterState g_localCharacter;
+    extern LocalServiceState g_localServices;
     extern std::map<unsigned long long, PhotonSessionState> g_photonSessions;
 
     unsigned long long PhotonSessionKey(const sockaddr_in& remote);
@@ -73,6 +86,7 @@ namespace bolemu
     bool SaveLocalCharacter();
     bool LoadLocalCharacter();
     void PrintHex(const char* prefix, const unsigned char* data, int size);
+    void NoteGeneratedPhotonEvent(const char* label, const sockaddr_in& remote, unsigned int clientTime, unsigned int reliableSequence);
 
     void HandleClient(SOCKET client);
 
@@ -132,6 +146,7 @@ namespace bolemu
     bool SendPhotonMyGuildIdResponse(SOCKET server, const sockaddr_in& remote, int remoteLength, unsigned int receivedSentTime, unsigned int challenge, unsigned char operationCode, bool encrypted);
     bool SendPhotonMySkillPointsResponse(SOCKET server, const sockaddr_in& remote, int remoteLength, unsigned int receivedSentTime, unsigned int challenge, unsigned char operationCode, bool encrypted);
     bool SendPhotonMailBootstrapResponse(SOCKET server, const sockaddr_in& remote, int remoteLength, unsigned int receivedSentTime, unsigned int challenge, unsigned char operationCode, bool encrypted);
+    bool SendPhotonDecompiledContractResponse(SOCKET server, const sockaddr_in& remote, int remoteLength, unsigned int receivedSentTime, unsigned int challenge, unsigned char operationCode, const unsigned char* requestPlain, int requestPlainSize, bool encrypted);
     const char* LookupBOLOperationName(unsigned char operationCode);
     const char* LookupBOLServiceName(unsigned char operationCode);
     bool SendPhotonEmptySuccessResponse(SOCKET server, const sockaddr_in& remote, int remoteLength, unsigned int receivedSentTime, unsigned int challenge, unsigned char operationCode, bool encrypted, const char* label);
@@ -146,4 +161,6 @@ namespace bolemu
     unsigned int AdvancePlayerViewCountCandidate();
     void ConfirmPlayerViewCountCandidate();
     bool SendPhotonPlayerInstantiateEvent(SOCKET server, const sockaddr_in& remote, int remoteLength, unsigned int receivedSentTime, unsigned int challenge, bool encrypted);
+    bool SendPhotonPlayerReadySerializeEvent(SOCKET server, const sockaddr_in& remote, int remoteLength, unsigned int receivedSentTime, unsigned int challenge, bool encrypted);
+    bool SendPhotonSessionMapStateSerializeEvent(SOCKET server, const sockaddr_in& remote, int remoteLength, unsigned int receivedSentTime, unsigned int challenge, bool encrypted, unsigned int sessionViewId, const char* mapName, const char* gameModeName, unsigned char mapLoadingCount);
 }

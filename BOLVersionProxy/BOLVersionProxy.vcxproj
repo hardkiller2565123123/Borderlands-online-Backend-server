@@ -82,7 +82,9 @@
   <ItemGroup>
     <ClCompile Include="AuthRedirect.cpp" />
     <ClCompile Include="EmuBootstrap.cpp" />
+    <ClCompile Include="FileTrace.cpp" />
     <ClCompile Include="Logger.cpp" />
+    <ClCompile Include="MonoLoadInspector.cpp" />
     <ClCompile Include="GpkSuppress.cpp" />
     <ClCompile Include="ShandaHook.cpp" />
     <ClCompile Include="VersionProxy.cpp" />
@@ -90,7 +92,9 @@
   <ItemGroup>
     <ClInclude Include="AuthRedirect.h" />
     <ClInclude Include="EmuBootstrap.h" />
+    <ClInclude Include="FileTrace.h" />
     <ClInclude Include="Logger.h" />
+    <ClInclude Include="MonoLoadInspector.h" />
     <ClInclude Include="GpkSuppress.h" />
     <ClInclude Include="ShandaHook.h" />
   </ItemGroup>

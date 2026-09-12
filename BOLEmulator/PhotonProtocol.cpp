@@ -145,11 +145,12 @@ namespace bolemu
 
     void AppendCurrencyHashtableValue(std::vector<unsigned char>& out)
     {
+        // CurrencyInfo::.ctor: 0=characterId, 1=bond, 2=circulate, 3=special.
         AppendProtocol16HashtableHeader(out, 6);
-        AppendProtocol16IntEntry(out, 0, 0);
-        AppendProtocol16IntEntry(out, 1, 500);
-        AppendProtocol16IntEntry(out, 2, 0);
-        AppendProtocol16IntEntry(out, 3, 0);
+        AppendProtocol16IntEntry(out, 0, g_localCharacter.id);
+        AppendProtocol16IntEntry(out, 1, g_localServices.bondCurrency);
+        AppendProtocol16IntEntry(out, 2, g_localServices.circulateCurrency);
+        AppendProtocol16IntEntry(out, 3, g_localServices.specialCurrency);
         AppendProtocol16HashtableIntKey(out, 4);
         AppendEmptyHashtableValue(out);
         AppendProtocol16HashtableIntKey(out, 5);

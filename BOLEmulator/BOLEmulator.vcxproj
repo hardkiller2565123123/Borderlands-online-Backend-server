@@ -100,6 +100,7 @@
     <ClCompile Include="services\SkillTreeService.cpp" />
     <ClCompile Include="services\MailService.cpp" />
     <ClCompile Include="services\CommonService.cpp" />
+    <ClCompile Include="services\DecompiledContractService.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="EmulatorShared.h" />

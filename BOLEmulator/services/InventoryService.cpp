@@ -2,34 +2,6 @@
 
 namespace bolemu
 {
-    namespace
-    {
-        void AppendEmptyInventoryRootHashtableValue(std::vector<unsigned char>& out)
-        {
-            // Assembly-CSharp.dll -> InventoryService::.ctor registers operation
-            // 196 (0xC4) with InventoryService::OnNewInventory. The callback reads
-            // response parameter 0 as a Hashtable and passes it into Inventory's
-            // Hashtable constructor. That constructor directly consumes keys 0..10.
-            // Empty nested Hashtables are valid for a brand-new local character.
-            AppendProtocol16HashtableHeader(out, 11);
-
-            AppendProtocol16IntEntry(out, 0, 1);      // inventory id / owner-local id
-            AppendProtocol16ByteEntry(out, 1, 0);     // inventory state/type
-            AppendProtocol16ByteEntry(out, 2, 0);     // inventory state/type
-
-            for (unsigned int key = 3; key <= 8; ++key)
-            {
-                AppendProtocol16HashtableIntKey(out, key);
-                AppendEmptyHashtableValue(out);
-            }
-
-            AppendProtocol16IntEntry(out, 9, 42);     // default capacity used by Inventory
-
-            AppendProtocol16HashtableIntKey(out, 10); // additional inventory metadata
-            AppendEmptyHashtableValue(out);
-        }
-    }
-
     bool SendPhotonInventoryResponse(
         SOCKET server,
         const sockaddr_in& remote,
@@ -46,7 +18,10 @@ namespace bolemu
         plain.push_back(0x2A); // null DebugMessage
         AppendU16BE(plain, 1); // one response parameter
         plain.push_back(0x00); // key 0: Inventory Hashtable
-        AppendEmptyInventoryRootHashtableValue(plain);
+        // Inventory::.ctor directly consumes keys 0..14, including ammo key
+        // 12 and nullable equipment keys 11/13/14. Use the already-recovered
+        // complete new-character schema rather than the old truncated 0..10 map.
+        AppendInventoryHashtableValue(plain);
 
         std::vector<unsigned char> message;
         message.push_back(0xF3);
@@ -91,7 +66,7 @@ namespace bolemu
                  plain.data(), static_cast<int>(plain.size()));
         PrintHex("[PHOTON/UDP] -> GET_INVENTORY_RESPONSE",
                  reply.data(), static_cast<int>(reply.size()));
-        std::printf("[PHOTON/UDP] GetInventory success: empty starter inventory for character id=%u ch=0 seq=%u%s\n",
+        std::printf("[PHOTON/UDP] GetInventory success: complete 15-key starter inventory for character id=%u ch=0 seq=%u%s\n",
                     g_localCharacter.id, sequence, encrypted ? " encrypted" : "");
         std::printf("[PHOTON/UDP] waiting for the next post-inventory BOL operation\n");
         std::fflush(stdout);

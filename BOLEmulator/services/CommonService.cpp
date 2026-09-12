@@ -561,6 +561,7 @@ namespace bolemu
 
         PrintHex("[PHOTON/UDP] Join event plaintext", plain.data(), static_cast<int>(plain.size()));
         PrintHex("[PHOTON/UDP] -> JOIN_EVENT_255", reply.data(), static_cast<int>(reply.size()));
+        NoteGeneratedPhotonEvent("JOIN_EVENT_255", remote, receivedSentTime, sequence);
         std::printf("[PHOTON/UDP] Join event 255 sent: localActor=2 actors=[1,2] masterActor=1 ch=0 seq=%u%s\n",
                     sequence, encrypted ? " encrypted" : "");
         std::printf("[PHOTON/UDP] client should now enter NetworkingPeer.OnJoinedRoom\n");
@@ -728,6 +729,7 @@ namespace bolemu
 
         PrintHex("[PHOTON/UDP] Session instantiate event plaintext", plain.data(), static_cast<int>(plain.size()));
         PrintHex("[PHOTON/UDP] -> INSTANTIATE_EVENT_202_SESSION", reply.data(), static_cast<int>(reply.size()));
+        NoteGeneratedPhotonEvent("SESSION_EVENT_202", remote, receivedSentTime, sequence);
         std::printf("[PHOTON/UDP] Session instantiate event 202 sent: prefab=Session sender/masterActor=1 instantiationId=%u viewCount=%u viewIds=%u..%u byteKeys=[0,4,6,7] ch=0 seq=%u%s\n",
                     kSessionViewId,
                     sessionViewCount,
@@ -825,14 +827,16 @@ namespace bolemu
         unsigned int challenge,
         bool encrypted)
     {
-        // Session occupies 1001..1006. The first Player instance starts at
-        // 1007 so its view IDs never collide with the known-good Session.
+        // Session is owned by the emulated master actor (actor 1) and occupies
+        // 1001..1006. The local BOL client is actor 2, so its Player PhotonViews
+        // must live in actor 2's view-ID range (2001..). Using 1007 made the
+        // Player look master-owned even though the spawn data named actor 2.
         constexpr unsigned char kInstantiateEventCode = 202;
         constexpr unsigned char kEventDataParameter = 245;
         constexpr unsigned char kActorNumberParameter = 254;
         constexpr unsigned int kServerActorNumber = 1;
         constexpr unsigned int kLocalActorNumber = 2;
-        constexpr unsigned int kPlayerViewId = 1007;
+        constexpr unsigned int kPlayerViewId = 2001;
         const unsigned int playerViewCount = GetPlayerViewCountCandidate();
 
         std::vector<unsigned char> instantiateData;
@@ -852,12 +856,12 @@ namespace bolemu
             AppendU32BE(instantiateData, kPlayerViewId + i);
 
         // key 5: InstantiateManager spawn data:
-        // [actorId, name, accountId, characterId, experience].
+        // [actorId, characterName, accountId, characterId, experience].
         AppendProtocol16TypedByte(instantiateData, 5);
         instantiateData.push_back(0x7A); // GpType.ObjectArray
         AppendU16BE(instantiateData, 5);
         AppendProtocol16TypedInt(instantiateData, kLocalActorNumber);
-        AppendProtocol16TypedString(instantiateData, "");
+        AppendProtocol16TypedString(instantiateData, g_localCharacter.name);
         AppendProtocol16TypedInt(instantiateData, g_localCharacter.accountId);
         AppendProtocol16TypedInt(instantiateData, g_localCharacter.id);
         AppendProtocol16TypedInt(instantiateData, g_localCharacter.experience);
@@ -920,6 +924,7 @@ namespace bolemu
 
         PrintHex("[PHOTON/UDP] Player instantiate event plaintext", plain.data(), static_cast<int>(plain.size()));
         PrintHex("[PHOTON/UDP] -> INSTANTIATE_EVENT_202_PLAYER", reply.data(), static_cast<int>(reply.size()));
+        NoteGeneratedPhotonEvent("PLAYER_EVENT_202", remote, receivedSentTime, sequence);
         std::printf("[PHOTON/AUTO-PLAYER] Player Event202 sent: prefab=Player actor=2 characterId=%u instantiationId=%u viewCount=%u viewIds=%u..%u ch=0 seq=%u%s\n",
                     g_localCharacter.id,
                     kPlayerViewId,
@@ -928,6 +933,313 @@ namespace bolemu
                     kPlayerViewId + playerViewCount - 1,
                     sequence,
                     encrypted ? " encrypted" : "");
+        std::fflush(stdout);
+        return true;
+    }
+
+
+    static void AppendU16LE(std::vector<unsigned char>& out, unsigned short value)
+    {
+        out.push_back(static_cast<unsigned char>(value & 0xFF));
+        out.push_back(static_cast<unsigned char>((value >> 8) & 0xFF));
+    }
+
+    static void AppendU32LE(std::vector<unsigned char>& out, unsigned int value)
+    {
+        out.push_back(static_cast<unsigned char>(value & 0xFF));
+        out.push_back(static_cast<unsigned char>((value >> 8) & 0xFF));
+        out.push_back(static_cast<unsigned char>((value >> 16) & 0xFF));
+        out.push_back(static_cast<unsigned char>((value >> 24) & 0xFF));
+    }
+
+    static void AppendProtocol16TypedShort(std::vector<unsigned char>& out, unsigned short value)
+    {
+        out.push_back(0x6B); // GpType.Int16 ('k')
+        AppendU16BE(out, value);
+    }
+
+    static void AppendProtocol16TypedBool(std::vector<unsigned char>& out, bool value)
+    {
+        out.push_back(0x6F); // GpType.Boolean ('o')
+        out.push_back(value ? 1 : 0);
+    }
+
+    static void AppendProtocol16TypedDouble(std::vector<unsigned char>& out, double value)
+    {
+        out.push_back(0x64); // GpType.Double ('d')
+        unsigned long long bits = 0;
+        static_assert(sizeof(bits) == sizeof(value), "double size mismatch");
+        std::memcpy(&bits, &value, sizeof(bits));
+        for (int shift = 56; shift >= 0; shift -= 8)
+            out.push_back(static_cast<unsigned char>((bits >> shift) & 0xFF));
+    }
+
+    static std::vector<unsigned char> ParseAvatarByteList(const std::string& csv)
+    {
+        std::vector<unsigned char> result;
+        const char* cursor = csv.c_str();
+        while (*cursor)
+        {
+            while (*cursor == ' ' || *cursor == '\t' || *cursor == ',')
+                ++cursor;
+            if (!*cursor)
+                break;
+
+            char* end = nullptr;
+            long value = std::strtol(cursor, &end, 10);
+            if (end == cursor)
+                break;
+            value = std::max<long>(0, std::min<long>(255, value));
+            result.push_back(static_cast<unsigned char>(value));
+            cursor = end;
+            while (*cursor && *cursor != ',')
+                ++cursor;
+        }
+        return result;
+    }
+
+    static void AppendProtocol16AvatarDna(std::vector<unsigned char>& out)
+    {
+        // BOL registers AvatarDNA as Photon custom type 68 (0x44).
+        std::vector<unsigned char> fbx = ParseAvatarByteList(g_localCharacter.avatarParts);
+        std::vector<unsigned char> mats = ParseAvatarByteList(g_localCharacter.avatarMaterials);
+        size_t count = std::max(fbx.size(), mats.size());
+        if (count == 0)
+            count = 8;
+        if (count > 255)
+            count = 255;
+        fbx.resize(count, 0);
+        mats.resize(count, 0);
+
+        std::vector<unsigned char> payload;
+        payload.reserve(10 + count * 2);
+        AppendU16LE(payload, static_cast<unsigned short>(g_localCharacter.avatarType & 0xFF));
+        AppendU32LE(payload, static_cast<unsigned int>(count));
+        AppendU32LE(payload, g_localCharacter.avatarIdBits);
+        payload.insert(payload.end(), fbx.begin(), fbx.end());
+        payload.insert(payload.end(), mats.begin(), mats.end());
+
+        out.push_back(0x63); // GpType.Custom ('c')
+        out.push_back(68);   // AvatarDNA custom type code
+        AppendU16BE(out, static_cast<unsigned short>(payload.size()));
+        out.insert(out.end(), payload.begin(), payload.end());
+    }
+
+    bool SendPhotonPlayerReadySerializeEvent(
+        SOCKET server,
+        const sockaddr_in& remote,
+        int remoteLength,
+        unsigned int receivedSentTime,
+        unsigned int challenge,
+        bool encrypted)
+    {
+        // RPC_RequestPlayerReady is handled by the original host by changing
+        // PlayerInfoSync.state to PlayerReady and serializing that authoritative
+        // state. Our local Player belongs to actor 2, therefore its first view
+        // is 2001 (not the master's 1000-range).
+        constexpr unsigned char kSerializeReliableEventCode = 206;
+        constexpr unsigned char kEventDataParameter = 245;
+        constexpr unsigned char kActorNumberParameter = 254;
+        constexpr unsigned int kServerActorNumber = 1;
+        constexpr unsigned int kLocalActorNumber = 2;
+        constexpr unsigned int kPlayerViewId = 2001;
+        constexpr unsigned char kPlayerReadyState = 1;
+
+        std::vector<unsigned char> streamData;
+        streamData.reserve(128);
+        streamData.push_back(0x7A); // GpType.ObjectArray
+        AppendU16BE(streamData, 10);
+        AppendProtocol16TypedInt(streamData, kLocalActorNumber);
+        AppendProtocol16TypedString(streamData, g_localCharacter.name);
+        AppendProtocol16TypedInt(streamData, g_localCharacter.accountId);
+        AppendProtocol16TypedInt(streamData, g_localCharacter.id);
+        AppendProtocol16TypedInt(streamData, g_localCharacter.experience);
+        AppendProtocol16TypedByte(streamData, 0); // team id
+        AppendProtocol16TypedByte(streamData, 0); // group id
+        AppendProtocol16TypedByte(streamData, kPlayerReadyState);
+        AppendProtocol16TypedByte(streamData, 0); // anti-addiction level
+        AppendProtocol16AvatarDna(streamData);
+
+        std::vector<unsigned char> viewData;
+        viewData.reserve(32 + streamData.size());
+        AppendProtocol16HashtableHeader(viewData, 2);
+        AppendProtocol16IntEntry(viewData, 0, kPlayerViewId);
+        AppendProtocol16HashtableIntKey(viewData, 1);
+        viewData.insert(viewData.end(), streamData.begin(), streamData.end());
+
+        std::vector<unsigned char> eventData;
+        eventData.reserve(32 + viewData.size());
+        AppendProtocol16HashtableHeader(eventData, 2);
+        AppendProtocol16IntEntry(eventData, 0, receivedSentTime);
+        AppendProtocol16TypedShort(eventData, 1);
+        eventData.insert(eventData.end(), viewData.begin(), viewData.end());
+
+        std::vector<unsigned char> plain;
+        plain.reserve(16 + eventData.size());
+        plain.push_back(kSerializeReliableEventCode);
+        AppendU16BE(plain, 2);
+        AppendProtocol16EncodedParameter(plain, kEventDataParameter, eventData);
+        AppendProtocol16IntParameter(plain, kActorNumberParameter, kServerActorNumber);
+
+        std::vector<unsigned char> message;
+        message.push_back(0xF3);
+        if (encrypted)
+        {
+            std::vector<unsigned char> cipher;
+            if (!PhotonEncrypt(plain.data(), static_cast<int>(plain.size()), cipher))
+            {
+                std::printf("[PHOTON/AUTO-CHAIN] PlayerReady serialization encryption failed\n");
+                std::fflush(stdout);
+                return false;
+            }
+            message.push_back(0x84);
+            message.insert(message.end(), cipher.begin(), cipher.end());
+        }
+        else
+        {
+            message.push_back(0x04);
+            message.insert(message.end(), plain.begin(), plain.end());
+        }
+
+        std::vector<unsigned char> reply;
+        reply.reserve(24 + message.size());
+        AppendPhotonHeaderForPeer(reply, 1, 1, receivedSentTime, challenge);
+        const unsigned int sequence = GetPhotonSession(remote).serverReliableSequenceCh0++;
+        AppendPhotonCommandHeader(reply, 6, 0, 1, 4,
+                                  static_cast<unsigned int>(12 + message.size()), sequence);
+        reply.insert(reply.end(), message.begin(), message.end());
+
+        const int sent = sendto(server,
+                                reinterpret_cast<const char*>(reply.data()),
+                                static_cast<int>(reply.size()), 0,
+                                reinterpret_cast<const sockaddr*>(&remote),
+                                remoteLength);
+        if (sent != static_cast<int>(reply.size()))
+        {
+            std::printf("[PHOTON/AUTO-CHAIN] PlayerReady serialization send failed: %d\n", WSAGetLastError());
+            std::fflush(stdout);
+            return false;
+        }
+
+        PrintHex("[PHOTON/AUTO-CHAIN] -> PLAYER_READY_SERIALIZE_206", reply.data(), static_cast<int>(reply.size()));
+        NoteGeneratedPhotonEvent("PLAYER_READY_EVENT_206", remote, receivedSentTime, sequence);
+        std::printf("[PHOTON/AUTO-CHAIN] authoritative PlayerReady sent: actor=2 viewId=2001 characterId=%u state=1 seq=%u%s\n",
+                    g_localCharacter.id, sequence, encrypted ? " encrypted" : "");
+        std::printf("[PHOTON/AUTO-CHAIN] watching for the next RPC or PUN Instantiate event automatically\n");
+        std::fflush(stdout);
+        return true;
+    }
+
+    bool SendPhotonSessionMapStateSerializeEvent(
+        SOCKET server,
+        const sockaddr_in& remote,
+        int remoteLength,
+        unsigned int receivedSentTime,
+        unsigned int challenge,
+        bool encrypted,
+        unsigned int sessionViewId,
+        const char* mapName,
+        const char* gameModeName,
+        unsigned char mapLoadingCount)
+    {
+        // Verified directly against the decompiled Assembly-CSharp SessionInfo.cs:
+        // exactly 11 values: instanceName(string), difficulty(byte), startTime(double),
+        // showTimer(bool), mapLoadingCount(byte), mapName(string), gameModeName(string),
+        // then four Int16 SessionStats values. The reader calls SetMapAndModeName only
+        // when its current Session.m_mapLoadingCount differs from the received byte.
+        constexpr unsigned char kSerializeReliableEventCode = 206;
+        constexpr unsigned char kEventDataParameter = 245;
+        constexpr unsigned char kActorNumberParameter = 254;
+        constexpr unsigned int kServerActorNumber = 1;
+
+        std::vector<unsigned char> streamData;
+        streamData.reserve(160);
+        streamData.push_back(0x7A); // GpType.ObjectArray
+        AppendU16BE(streamData, 11);
+        AppendProtocol16TypedString(streamData, "LocalGame");
+        AppendProtocol16TypedByte(streamData, 0);       // ELevelDifficulty default
+        AppendProtocol16TypedDouble(streamData, 0.0);   // start time
+        AppendProtocol16TypedBool(streamData, false);   // show timer
+        AppendProtocol16TypedByte(streamData, mapLoadingCount);
+        AppendProtocol16TypedString(streamData, mapName ? mapName : "");
+        AppendProtocol16TypedString(streamData, gameModeName ? gameModeName : "");
+        AppendProtocol16TypedShort(streamData, 0);       // sessionLevelRange
+        AppendProtocol16TypedShort(streamData, 0);       // timeLimit
+        AppendProtocol16TypedShort(streamData, 0);       // endScore
+        AppendProtocol16TypedShort(streamData, 0);       // endKillCount
+
+        std::vector<unsigned char> viewData;
+        AppendProtocol16HashtableHeader(viewData, 2);
+        AppendProtocol16IntEntry(viewData, 0, sessionViewId);
+        AppendProtocol16HashtableIntKey(viewData, 1);
+        viewData.insert(viewData.end(), streamData.begin(), streamData.end());
+
+        std::vector<unsigned char> eventData;
+        AppendProtocol16HashtableHeader(eventData, 2);
+        AppendProtocol16IntEntry(eventData, 0, receivedSentTime);
+        AppendProtocol16TypedShort(eventData, 1);
+        eventData.insert(eventData.end(), viewData.begin(), viewData.end());
+
+        std::vector<unsigned char> plain;
+        plain.push_back(kSerializeReliableEventCode);
+        AppendU16BE(plain, 2);
+        AppendProtocol16EncodedParameter(plain, kEventDataParameter, eventData);
+        AppendProtocol16IntParameter(plain, kActorNumberParameter, kServerActorNumber);
+
+        std::vector<unsigned char> message;
+        message.push_back(0xF3);
+        if (encrypted)
+        {
+            std::vector<unsigned char> cipher;
+            if (!PhotonEncrypt(plain.data(), static_cast<int>(plain.size()), cipher))
+            {
+                std::printf("[PHOTON/AUTO-CHAIN] Session map-state serialization encryption failed\n");
+                std::fflush(stdout);
+                return false;
+            }
+            message.push_back(0x84);
+            message.insert(message.end(), cipher.begin(), cipher.end());
+        }
+        else
+        {
+            message.push_back(0x04);
+            message.insert(message.end(), plain.begin(), plain.end());
+        }
+
+        std::vector<unsigned char> reply;
+        AppendPhotonHeaderForPeer(reply, 1, 1, receivedSentTime, challenge);
+        const unsigned int sequence = GetPhotonSession(remote).serverReliableSequenceCh0++;
+        AppendPhotonCommandHeader(reply, 6, 0, 1, 4,
+                                  static_cast<unsigned int>(12 + message.size()), sequence);
+        reply.insert(reply.end(), message.begin(), message.end());
+
+        const int sent = sendto(server,
+                                reinterpret_cast<const char*>(reply.data()),
+                                static_cast<int>(reply.size()), 0,
+                                reinterpret_cast<const sockaddr*>(&remote),
+                                remoteLength);
+        if (sent != static_cast<int>(reply.size()))
+        {
+            std::printf("[PHOTON/AUTO-CHAIN] Session map-state send failed: %d\n", WSAGetLastError());
+            std::fflush(stdout);
+            return false;
+        }
+
+        PrintHex("[PHOTON/AUTO-CHAIN] -> SESSION_MAP_STATE_SERIALIZE_206", reply.data(), static_cast<int>(reply.size()));
+        char traceLabel[96] = {};
+        std::snprintf(traceLabel, sizeof(traceLabel), "SESSIONINFO_VIEW_%u_COUNT_%u_EVENT_206",
+                      sessionViewId, static_cast<unsigned int>(mapLoadingCount));
+        NoteGeneratedPhotonEvent(traceLabel, remote, receivedSentTime, sequence);
+        std::printf("[PHOTON/SESSIONINFO-EXACT] SessionInfo exact packet sent: viewId=%u mapLoadingCount=%u map=%s mode=%s seq=%u%s\n",
+                    sessionViewId,
+                    static_cast<unsigned int>(mapLoadingCount),
+                    mapName ? mapName : "",
+                    gameModeName ? gameModeName : "",
+                    sequence, encrypted ? " encrypted" : "");
+        if (mapLoadingCount == 0)
+            std::printf("[PHOTON/SESSIONINFO-EXACT] count=0 control: client should deserialize all 11 values without OnMapChange\n");
+        else
+            std::printf("[PHOTON/SESSIONINFO-EXACT] count changed: client should call SetMapAndModeName -> ClientSession.OnMapChange\n");
         std::fflush(stdout);
         return true;
     }

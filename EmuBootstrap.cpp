@@ -3,8 +3,6 @@
 #include "Logger.h"
 #include "ShandaHook.h"
 #include "GpkSuppress.h"
-#include "FileTrace.h"
-#include "MonoLoadInspector.h"
 
 #include <string>
 #include <vector>
@@ -223,20 +221,13 @@ namespace emu
             bol_log::Write("[BOOT] Local game backend argument present; normal username/password login remains enabled");
         }
 
-        bol_log::Write("Borderlands Online revival bootstrap v63 started");
-        bol_log::Write("[V63/PAIR] version.dll build marker: BOLREVIVAL_V63_PROXY_TRACE_MARKER");
+        bol_log::Write("Borderlands Online revival bootstrap started");
         bol_log::Write("Architecture: x86 / Win32");
         bol_log::Write("Emulator services: game backend routing + CAS compatibility");
         bol_log::Write("Local account target: admin / admin");
         bol_log::Write("VERSION proxy: includes VerQueryValueW required by BOL_Data\\Mono\\mono.dll");
 
         LogKnownFiles();
-
-        // v63 diagnostics: observe the native Unity file-open sequence. This does
-        // not modify Unity state or force a level; it only records which local
-        // loading files the stock client actually attempts to open.
-        file_trace::Start();
-        mono_load_inspector::Start();
 
         // The retired GPK auto-updater always fails now. Suppress only its
         // known update-failure dialog/window; leave the rest of GPKit intact.

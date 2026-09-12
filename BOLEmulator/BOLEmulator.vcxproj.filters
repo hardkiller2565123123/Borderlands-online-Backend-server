@@ -25,6 +25,7 @@
     <ClCompile Include="services\SkillTreeService.cpp"><Filter>Source Files\Services</Filter></ClCompile>
     <ClCompile Include="services\MailService.cpp"><Filter>Source Files\Services</Filter></ClCompile>
     <ClCompile Include="services\CommonService.cpp"><Filter>Source Files\Services</Filter></ClCompile>
+    <ClCompile Include="services\DecompiledContractService.cpp"><Filter>Source Files\Services</Filter></ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="EmulatorShared.h"><Filter>Header Files</Filter></ClInclude>
